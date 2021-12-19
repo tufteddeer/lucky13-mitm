@@ -8,6 +8,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::SocketAddr;
 use std::net::{IpAddr, Ipv6Addr};
 use std::net::{TcpListener, TcpStream};
+use crate::tls::{APPLICATION_CONTENT, read_header, TLS_V_1_2};
 
 /// TcpProxy runs one thread looping to accept new connections
 /// and then two separate threads per connection for writing to each end
@@ -54,6 +55,14 @@ impl TcpProxy {
                                 debug!("Client closed connection");
                                 return;
                             }
+
+                            if length >= 3 {
+                                let header = read_header(&buffer);
+                                if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
+                                    println!("found app content")
+                                }
+                            }
+
                             sender_forward
                                 .write_all(&buffer)
                                 .expect("Failed to write to remote");
@@ -75,6 +84,14 @@ impl TcpProxy {
                                 debug!("Remote closed connection");
                                 return;
                             }
+
+                            if length >= 3 {
+                                let header = read_header(&buffer);
+                                if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
+                                    println!("found app content")
+                                }
+                            }
+
                             if stream_backward.write_all(&buffer).is_err() {
                                 // Connection closed
                                 debug!("Client closed connection");

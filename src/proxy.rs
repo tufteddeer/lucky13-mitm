@@ -1,3 +1,5 @@
+use std::cmp::{min};
+use std::fs::copy;
 /**
 Based on the basic_ctp_proxy crate (https://crates.io/crates/basic_tcp_proxy), MIT/Apache-2.0
 https://github.com/jamesmcm/basic_tcp_proxy/blob/master/src/lib.rs
@@ -56,15 +58,28 @@ impl TcpProxy {
                                 return;
                             }
 
+                            let mut forward_buff = vec![0u8; length];
+                            forward_buff.copy_from_slice(buffer);
                             if length >= 3 {
                                 let header = read_header(&buffer);
                                 if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
-                                    println!("found app content")
+                                    println!("found app content");
+
+                                    //forward_buff[length-1] = 0x01;
+
+                                    for i in 1 .. min(900, length - 4) {
+                                        forward_buff[length-i] =  0x11;
+                                        println!("{}", i)
+                                    }
+                                    /*
+                                    forward_buff[length-1] = 0x03;
+                                    forward_buff[length-2] = 0x03;
+                                    forward_buff[length-3] = 0x03;*/
                                 }
                             }
 
                             sender_forward
-                                .write_all(&buffer)
+                                .write_all(&forward_buff)
                                 .expect("Failed to write to remote");
                             sender_forward.flush().expect("Failed to flush remote");
                             length

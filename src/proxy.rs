@@ -60,7 +60,9 @@ impl TcpProxy {
 
                             let mut forward_buff = vec![0u8; length];
                             forward_buff.copy_from_slice(buffer);
-                            if length >= 3 {
+
+                            if length >= 5 {
+
                                 let header = read_header(&buffer);
                                 if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
                                     println!("found app content");

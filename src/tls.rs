@@ -8,21 +8,20 @@ pub const TLS_V_1_2: u16 = 0x0303;
 pub struct Header {
     pub content_type: u8,
     pub version: u16,
+    pub content_len: u16,
 }
 
 pub fn read_header(buffer: &[u8]) -> Header {
 
-    // read the first 3 bytes (content type (1) and version (2))
-    let mut header_buff = [0u8; 3];
-    let mut header_reader = BufReader::new(buffer);
+    assert!(buffer.len() >= 5, "buffer length must be at least 5 bytes to read header, was {}", buffer.len());
 
-    header_reader.read_exact(&mut header_buff).expect("Failed to read header");
+    let ver = ((buffer[1] as u16) << 8) | buffer[2] as u16;
 
-    let ver = ((header_buff[1] as u16) << 8) | header_buff[2] as u16;
-
+    let content_len = ((buffer[3] as u16) << 8) | buffer[4] as u16;
     Header {
-        content_type: header_buff[0],
+        content_type: buffer[0],
         version: ver,
+        content_len,
     }
 }
 

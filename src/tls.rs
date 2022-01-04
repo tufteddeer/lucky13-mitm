@@ -9,7 +9,7 @@ pub const TLS_HEADER_SIZE: usize = 5;
 pub struct Header {
     pub content_type: u8,
     pub version: u16,
-    pub content_len: u16,
+    pub content_len: usize,
 }
 
 pub fn read_header(buffer: &[u8]) -> Header {
@@ -22,7 +22,7 @@ pub fn read_header(buffer: &[u8]) -> Header {
     Header {
         content_type: buffer[0],
         version: ver,
-        content_len,
+        content_len: content_len as usize,
     }
 }
 

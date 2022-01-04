@@ -1,5 +1,4 @@
 use std::fmt::{Debug};
-use std::io::{BufReader, Read};
 
 pub const APPLICATION_CONTENT: u8 = 0x17;
 pub const TLS_V_1_2: u16 = 0x0303;
@@ -13,7 +12,6 @@ pub struct Header {
 }
 
 pub fn read_header(buffer: &[u8]) -> Header {
-
     assert!(buffer.len() >= 5, "buffer length must be at least 5 bytes to read header, was {}", buffer.len());
 
     let ver = ((buffer[1] as u16) << 8) | buffer[2] as u16;

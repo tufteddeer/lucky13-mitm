@@ -1,9 +1,7 @@
-use std::cmp::{min};
-use std::fs::copy;
 /**
 Based on the basic_ctp_proxy crate (https://crates.io/crates/basic_tcp_proxy), MIT/Apache-2.0
 https://github.com/jamesmcm/basic_tcp_proxy/blob/master/src/lib.rs
-*/
+ */
 
 use log::debug;
 use std::io::{BufRead, BufReader, Read, Write};
@@ -49,7 +47,6 @@ impl TcpProxy {
                 std::thread::spawn(move || {
                     let mut stream_forward = BufReader::new(stream_forward);
                     loop {
-
                         let buffer = stream_forward.fill_buf().unwrap();
 
                         if buffer.is_empty() {
@@ -63,7 +60,6 @@ impl TcpProxy {
                         forward_buff.copy_from_slice(buffer);
 
                         if length >= TLS_HEADER_SIZE {
-
                             println!("buff size is {}, reading header", buffer.len());
                             let header = read_header(&buffer);
                             if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {

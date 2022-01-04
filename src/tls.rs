@@ -1,5 +1,6 @@
 use std::fmt::{Debug};
 
+pub const TLS_ALERT: u8 = 0x15;
 pub const TLS_APPLICATION_CONTENT: u8 = 0x17;
 pub const TLS_V_1_2: u16 = 0x0303;
 pub const TLS_HEADER_SIZE: usize = 5;

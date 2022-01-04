@@ -1,4 +1,5 @@
 mod proxy;
+mod tls;
 
 use crate::proxy::TcpProxy;
 

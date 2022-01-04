@@ -94,7 +94,8 @@ impl TcpProxy {
                     let mut sender_backward = BufReader::new(sender_backward);
                     loop {
                         let length = {
-                            let buffer = sender_backward.fill_buf().unwrap();
+                            // this will fail when the tls server terminates the connection after our manipulation/the alert is sent
+                            let buffer = sender_backward.fill_buf().expect("failed to read from server");
                             let length = buffer.len();
                             if buffer.is_empty() {
                                 // Connection closed

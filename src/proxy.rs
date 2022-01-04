@@ -8,7 +8,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::SocketAddr;
 use std::net::{IpAddr, Ipv6Addr};
 use std::net::{TcpListener, TcpStream};
-use crate::tls::{APPLICATION_CONTENT, read_header, TLS_HEADER_SIZE, TLS_V_1_2};
+use crate::tls::{TLS_APPLICATION_CONTENT, read_header, TLS_HEADER_SIZE, TLS_V_1_2};
 
 /// TcpProxy runs one thread looping to accept new connections
 /// and then two separate threads per connection for writing to each end
@@ -62,7 +62,7 @@ impl TcpProxy {
                         if length >= TLS_HEADER_SIZE {
                             println!("buff size is {}, reading header", buffer.len());
                             let header = read_header(&buffer);
-                            if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
+                            if header.version == TLS_V_1_2 && header.content_type == TLS_APPLICATION_CONTENT {
                                 println!("found app content");
 
                                 println!("content size: {}", header.content_len);

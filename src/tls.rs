@@ -3,6 +3,7 @@ use std::io::{BufReader, Read};
 
 pub const APPLICATION_CONTENT: u8 = 0x17;
 pub const TLS_V_1_2: u16 = 0x0303;
+pub const TLS_HEADER_SIZE: usize = 5;
 
 #[derive(Debug)]
 pub struct Header {

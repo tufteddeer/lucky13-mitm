@@ -67,7 +67,7 @@ impl TcpProxy {
 
                                 println!("content size: {}", header.content_len);
                                 println!("buff size: {}", buffer.len());
-                                println!("buffer content: {:?}", buffer);
+                                println!("buffer content: {:02X?}", buffer);
 
                                 // since there was no call to stream_forward.consume yet,
                                 // we can read TLS_HEADER_SIZE + content_len bytes (aka read the header again and wait for the rest of the record)

@@ -102,13 +102,6 @@ impl TcpProxy {
                                 return;
                             }
 
-                            if length >= 3 {
-                                let header = read_header(&buffer);
-                                if header.version == TLS_V_1_2 && header.content_type == APPLICATION_CONTENT {
-                                    println!("found app content")
-                                }
-                            }
-
                             if stream_backward.write_all(&buffer).is_err() {
                                 // Connection closed
                                 debug!("Client closed connection");

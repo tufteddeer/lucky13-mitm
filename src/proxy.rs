@@ -3,11 +3,14 @@ Based on the basic_ctp_proxy crate (https://crates.io/crates/basic_tcp_proxy), M
 https://github.com/jamesmcm/basic_tcp_proxy/blob/master/src/lib.rs
  */
 
+use std::sync::Mutex;
+use std::sync::Arc;
 use log::debug;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::SocketAddr;
 use std::net::{IpAddr, Ipv6Addr};
 use std::net::{TcpListener, TcpStream};
+use std::time::Instant;
 use crate::tls::{TLS_APPLICATION_CONTENT, read_header, TLS_HEADER_SIZE, TLS_V_1_2, TLS_ALERT};
 
 /// TcpProxy runs one thread looping to accept new connections
@@ -44,6 +47,10 @@ impl TcpProxy {
                 let mut stream_backward =
                     stream_forward.try_clone().expect("Failed to clone stream");
 
+                let bad_padding_sent_time = Arc::new(Mutex::new(Option::None));
+                // copy bad_padding_sent_time, cause the original is owned by the "forward stream" closure
+                let bad_padding_sent_time_copy = bad_padding_sent_time.clone();
+                
                 std::thread::spawn(move || {
                     let mut stream_forward = BufReader::new(stream_forward);
                     loop {
@@ -86,8 +93,11 @@ impl TcpProxy {
                                 // forward the whole tls record we captured
                                 forward_buff = tls_record_buff;
 
-                                // modify buffer
-                                //forward_buff[length-1] = 0x12;
+                                // mess with the padding
+                                forward_buff[length-1] = 0x12;
+
+                                let mut time = bad_padding_sent_time.lock().unwrap();
+                                *time = Some(Instant::now());
                             }
                         }
 
@@ -116,7 +126,16 @@ impl TcpProxy {
                                 let header = read_header(&buffer);
 
                                 if header.version == TLS_V_1_2 && header.content_type == TLS_ALERT {
-                                    println!("server has sent an alert!")
+                                    println!("server has sent an alert!");
+
+                                    let time = bad_padding_sent_time_copy.lock().unwrap();
+                                    match *time {
+                                        None => println!("got alert, but padding was not modified"),
+                                        Some(sent_time) => {
+                                            let elapsed = sent_time.elapsed().as_nanos();
+                                            println!("got alert after {}ns", elapsed);
+                                        }
+                                    }
                                 }
                             }
 

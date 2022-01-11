@@ -101,9 +101,13 @@ impl TcpProxy {
                             }
                         }
 
-                        sender_forward
-                            .write_all(&forward_buff)
-                            .expect("Failed to write to remote"); // this will fail when the tls server terminates the connection after our manipulation/the alert is sent
+                        let res = sender_forward
+                            .write_all(&forward_buff);
+                        match res {
+                            Ok(_) => {},
+                            Err(error) => log::error!("Failed to write to server, probably the session is terminated: {}", error)
+                        }
+                        
                         sender_forward.flush().expect("Failed to flush remote");
                         stream_forward.consume(length);
                     }

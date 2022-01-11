@@ -68,7 +68,7 @@ impl TcpProxy {
 
                         if length >= TLS_HEADER_SIZE {
                             log::debug!("buff size is {}, reading header", buffer.len());
-                            let header = read_header(&buffer);
+                            let header = read_header(buffer);
                             if header.version == TLS_V_1_2 && header.content_type == TLS_APPLICATION_CONTENT {
                                 log::debug!("found app content");
 
@@ -84,7 +84,7 @@ impl TcpProxy {
                                 // content_len does not include the 5 tls header bytes
                                 let tls_record_size = TLS_HEADER_SIZE + header.content_len;
 
-                                let mut tls_record_buff = vec![0 as u8; tls_record_size];
+                                let mut tls_record_buff = vec![0u8; tls_record_size];
                                 stream_forward.read_exact(&mut tls_record_buff).expect("failed to read whole tsl record");
                                 log::debug!("got record: {:02X?}", tls_record_buff);
                                 log::debug!("record length: {:?}", tls_record_buff.len());
@@ -131,7 +131,7 @@ impl TcpProxy {
                             }
 
                             if invalidate_padding && length >= TLS_HEADER_SIZE {
-                                let header = read_header(&buffer);
+                                let header = read_header(buffer);
 
                                 if header.version == TLS_V_1_2 && header.content_type == TLS_ALERT {
                                     log::info!("Server has sent an alert!");
@@ -148,7 +148,7 @@ impl TcpProxy {
                             }
                             
 
-                            if stream_backward.write_all(&buffer).is_err() {
+                            if stream_backward.write_all(buffer).is_err() {
                                 // Connection closed
                                 log::info!("Client closed connection");
                                 return;

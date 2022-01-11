@@ -22,7 +22,7 @@ fn main() {
 
     log::info!("Starting proxy on Port {}, forwarding to {}", proxy_port, server);
 
-    let invalidate_padding = false;
+    let invalidate_padding = true;
 
     match invalidate_padding {
         true => log::info!("Running in attack mode, will invalidate padding"),

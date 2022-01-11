@@ -5,7 +5,6 @@ https://github.com/jamesmcm/basic_tcp_proxy/blob/master/src/lib.rs
 
 use std::sync::Mutex;
 use std::sync::Arc;
-use log::debug;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::SocketAddr;
 use std::net::{IpAddr, Ipv6Addr};
@@ -40,7 +39,7 @@ impl TcpProxy {
                 let (stream_forward, _addr) = listener_forward
                     .accept()
                     .expect("Failed to accept connection");
-                debug!("New connection");
+                log::debug!("New connection");
 
                 let mut sender_forward = TcpStream::connect(proxy_to).expect("Failed to bind");
                 let sender_backward = sender_forward.try_clone().expect("Failed to clone stream");
@@ -58,7 +57,7 @@ impl TcpProxy {
 
                         if buffer.is_empty() {
                             // Connection closed
-                            debug!("Client closed connection");
+                            log::debug!("Client closed connection");
                             return;
                         }
 
@@ -67,14 +66,14 @@ impl TcpProxy {
                         forward_buff.copy_from_slice(buffer);
 
                         if length >= TLS_HEADER_SIZE {
-                            println!("buff size is {}, reading header", buffer.len());
+                            log::debug!("buff size is {}, reading header", buffer.len());
                             let header = read_header(&buffer);
                             if header.version == TLS_V_1_2 && header.content_type == TLS_APPLICATION_CONTENT {
-                                println!("found app content");
+                                log::debug!("found app content");
 
-                                println!("content size: {}", header.content_len);
-                                println!("buff size: {}", buffer.len());
-                                println!("buffer content: {:02X?}", buffer);
+                                log::debug!("content size: {}", header.content_len);
+                                log::debug!("buff size: {}", buffer.len());
+                                log::debug!("buffer content: {:02X?}", buffer);
 
                                 // since there was no call to stream_forward.consume yet,
                                 // we can read TLS_HEADER_SIZE + content_len bytes (aka read the header again and wait for the rest of the record)
@@ -85,15 +84,16 @@ impl TcpProxy {
                                 let tls_record_size = TLS_HEADER_SIZE + header.content_len;
 
                                 let mut tls_record_buff = vec![0 as u8; tls_record_size];
-                                stream_forward.read_exact(&mut tls_record_buff).expect("failed to read whole tsl record with");
-                                println!("got record: {:02X?}", tls_record_buff);
-                                println!("record length: {:?}", tls_record_buff.len());
+                                stream_forward.read_exact(&mut tls_record_buff).expect("failed to read whole tsl record");
+                                log::debug!("got record: {:02X?}", tls_record_buff);
+                                log::debug!("record length: {:?}", tls_record_buff.len());
 
                                 length = tls_record_buff.len();
                                 // forward the whole tls record we captured
                                 forward_buff = tls_record_buff;
 
                                 // mess with the padding
+                                log::info!("Manipulating padding, setting length to {:02X}", 0x12);
                                 forward_buff[length-1] = 0x12;
 
                                 let mut time = bad_padding_sent_time.lock().unwrap();
@@ -118,7 +118,7 @@ impl TcpProxy {
                             let length = buffer.len();
                             if buffer.is_empty() {
                                 // Connection closed
-                                debug!("Remote closed connection");
+                                log::info!("Remote closed connection");
                                 return;
                             }
 
@@ -126,11 +126,11 @@ impl TcpProxy {
                                 let header = read_header(&buffer);
 
                                 if header.version == TLS_V_1_2 && header.content_type == TLS_ALERT {
-                                    println!("server has sent an alert!");
+                                    log::info!("Server has sent an alert!");
 
                                     let time = bad_padding_sent_time_copy.lock().unwrap();
                                     match *time {
-                                        None => println!("got alert, but padding was not modified"),
+                                        None => log::warn!("got alert, but padding was not modified"),
                                         Some(sent_time) => {
                                             let elapsed = sent_time.elapsed().as_nanos();
                                             println!("got alert after {}ns", elapsed);
@@ -141,7 +141,7 @@ impl TcpProxy {
 
                             if stream_backward.write_all(&buffer).is_err() {
                                 // Connection closed
-                                debug!("Client closed connection");
+                                log::info!("Client closed connection");
                                 return;
                             }
 

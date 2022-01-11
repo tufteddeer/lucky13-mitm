@@ -141,7 +141,7 @@ impl TcpProxy {
                                         None => log::warn!("got alert, but padding was not modified"),
                                         Some(sent_time) => {
                                             let elapsed = sent_time.elapsed().as_nanos();
-                                            println!("got alert after {}ns", elapsed);
+                                            log::info!("got alert after {}ns", elapsed);
                                         }
                                     }
                                 }

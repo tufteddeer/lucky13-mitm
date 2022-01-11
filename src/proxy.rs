@@ -26,6 +26,7 @@ impl TcpProxy {
         listen_port: u16,
         proxy_to: SocketAddr,
         local_only: bool,
+        invalidate_padding: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let ip = if local_only {
             Ipv6Addr::LOCALHOST
@@ -92,12 +93,15 @@ impl TcpProxy {
                                 // forward the whole tls record we captured
                                 forward_buff = tls_record_buff;
 
-                                // mess with the padding
-                                log::info!("Manipulating padding, setting length to {:02X}", 0x12);
-                                forward_buff[length-1] = 0x12;
+                                if invalidate_padding {
+                                    // mess with the padding
+                                    log::info!("Manipulating padding, setting length to {:02X}", 0x12);
+                                    forward_buff[length-1] = 0x12;
 
-                                let mut time = bad_padding_sent_time.lock().unwrap();
-                                *time = Some(Instant::now());
+                                    let mut time = bad_padding_sent_time.lock().unwrap();
+                                    *time = Some(Instant::now());
+                                }
+                                
                             }
                         }
 
@@ -126,7 +130,7 @@ impl TcpProxy {
                                 return;
                             }
 
-                            if length >= TLS_HEADER_SIZE {
+                            if invalidate_padding && length >= TLS_HEADER_SIZE {
                                 let header = read_header(&buffer);
 
                                 if header.version == TLS_V_1_2 && header.content_type == TLS_ALERT {
@@ -142,6 +146,7 @@ impl TcpProxy {
                                     }
                                 }
                             }
+                            
 
                             if stream_backward.write_all(&buffer).is_err() {
                                 // Connection closed

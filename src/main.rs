@@ -21,6 +21,14 @@ fn main() {
     let proxy_port = 9091;
 
     log::info!("Starting proxy on Port {}, forwarding to {}", proxy_port, server);
-    let _proxy = TcpProxy::new(proxy_port, server.parse().unwrap(), false);
+
+    let invalidate_padding = false;
+
+    match invalidate_padding {
+        true => log::info!("Running in attack mode, will invalidate padding"),
+        false => log::info!("Running in peaceful mode, forwarding data unchanged")
+    }
+
+    let _proxy = TcpProxy::new(proxy_port, server.parse().unwrap(), false, invalidate_padding);
     loop {}
 }

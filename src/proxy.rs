@@ -95,7 +95,7 @@ impl TcpProxy {
 
                                 if invalidate_padding {
                                     // mess with the padding
-                                    log::info!("Manipulating padding, setting length to {:02X}", 0x12);
+                                    log::info!("Manipulating padding, setting length to 0x{:02X}", 0x12);
                                     forward_buff[length-1] = 0x12;
 
                                     let mut time = bad_padding_sent_time.lock().unwrap();
